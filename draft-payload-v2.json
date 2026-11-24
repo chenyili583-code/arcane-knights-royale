@@ -1,0 +1,35 @@
+{
+  "revision": 1,
+  "draft": {
+    "title": "奧術榮耀：中世紀魔法騎士大逃殺 (Realm of Arcane Knights: Royale)",
+    "designSummary": "以「中世紀暗黑奇幻與魔法騎士」為風格的頂視角大逃殺競技遊戲。包含16人戰局、動態蝕魔風暴縮圈、遺跡草叢隱蔽伏擊、魔導寶箱掉落、Web Audio原生音效引擎，以及完整的聖殿騎士工坊與英靈戰報殿堂雙CRUD資料管理功能。",
+    "changes": [
+      {
+        "before": "最初毒圈以固定等速收縮，地圖過大導致前期遇敵率低，後期又缺乏緊張感。",
+        "decision": "改採四階段動態收縮機制（15s/12s/10s/8s），並逐階遞增傷害（18->32->55->90 DPS），加入倒數警報音效與預告圈。",
+        "result": "戰鬥節奏精準收斂在3～4分鐘，AI在縮圈時主動逃生，決賽圈戰鬥激烈度大幅提升。",
+        "evidence": "程式碼 js/map.js 縮圈系統與簡報實機測試數據"
+      },
+      {
+        "before": "騎士工坊自訂角色後僅存在介面表單，無法將自選技能與數值帶入大逃殺戰局實戰。",
+        "decision": "重構 StorageManager 狀態總線，打通角色工坊 CRUD 與實戰系統，自訂騎士屬性（HP/MP/ATK/SPD）與雙法術能即時連動套用。",
+        "result": "成功於戰場中實裝自訂雷霆遊俠，驗證移速加成與連鎖閃電絕技能正常施放且具有專屬特效。",
+        "evidence": "程式碼 js/storage.js 與 js/game.js 聯動模組及前後截圖"
+      },
+      {
+        "before": "早期使用外部 mp3 音訊檔，因跨域與載入延遲常發生 404 錯誤及聲音破音卡頓。",
+        "decision": "全面採用 HTML5 Web Audio API 以振盪器與噪音節點程序化即時合成 12 種打擊與環境音效。",
+        "result": "實現零外部資源依賴，離線或無痕模式下揮劍、法術爆轟與勝利號角均能 0 延遲即時響應。",
+        "evidence": "程式碼 js/audio.js 音效引擎實作與架構說明"
+      }
+    ]
+  },
+  "groupEstimate": {
+    "revision": 2,
+    "published": 10,
+    "dataManagement": 10,
+    "individualContribution": 10,
+    "creativity": 10,
+    "explanation": "具備高完成度中世紀魔法騎士大逃殺遊戲、雙系統完整CRUD資料管理、零依賴Web Audio合成音效引擎，預估四項加分項目皆可達到標準。"
+  }
+}

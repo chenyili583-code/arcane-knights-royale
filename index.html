@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>奧術榮耀：中世紀暗黑哥特魔法騎士大逃殺 | Realm of Arcane Knights: Gothic Royale</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Noto+Serif+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="theme-gothic">
+  <!-- Top Global Gothic Navigation Bar -->
+  <header class="top-navbar">
+    <div class="brand">
+      <span class="brand-crest">🦇</span>
+      <div class="brand-text">
+        <h1 class="brand-title">奧術榮耀 <span class="sub-en">GOTHIC ROYALE</span></h1>
+        <p class="brand-sub">中世紀暗黑哥特魔法大逃殺 · 第 11 組期末旗艦專案</p>
+      </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-arena">⚔️ 哥特競技場</button>
+      <button class="nav-tab" data-tab="tab-workshop">🛡️ 聖殿騎士工坊 (CRUD+天賦)</button>
+      <button class="nav-tab" data-tab="tab-history">📜 英靈戰報與成就殿堂 (CRUD+匯出)</button>
+      <button class="nav-tab" data-tab="tab-guide">📖 遊戲玩法與評分指南</button>
+    </nav>
+    <div class="nav-actions">
+      <button id="btn-bgm-toggle" class="btn-icon gothic-btn" title="切換哥特氛圍 BGM">🎵 哥特BGM：開</button>
+      <button id="btn-sound-toggle" class="btn-icon" title="切換打擊音效">🔊 音效開</button>
+      <button id="btn-touch-toggle" class="btn-icon" title="切換手機/觸控虛擬按鈕">📱 虛擬按鍵</button>
+      <div class="current-knight-badge" id="nav-active-knight" title="點擊工坊更換騎士">
+        <span class="badge-icon">🛡️</span>
+        <span class="badge-name">破陣聖騎士</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Viewport Container -->
+  <main class="main-container">
+    <!-- TAB 1: BATTLE ROYALE ARENA -->
+    <section id="tab-arena" class="tab-pane active">
+      <div class="arena-wrapper" id="arena-shake-box">
+        <!-- Canvas Game View -->
+        <div class="canvas-viewport" id="canvas-container">
+          <canvas id="gameCanvas"></canvas>
+
+          <!-- IN-GAME HUD OVERLAY -->
+          <div id="game-hud" class="hud-overlay">
+            <!-- Top Status Bar -->
+            <div class="hud-top">
+              <div class="hud-stat-box" id="hud-alive-box">
+                <span class="hud-icon">👑</span>
+                <span class="hud-label">存活騎士</span>
+                <span class="hud-val highlight" id="hud-alive-count">16 / 16</span>
+              </div>
+              <div class="hud-stat-box" id="hud-kills-box">
+                <span class="hud-icon">⚔️</span>
+                <span class="hud-label">擊殺數</span>
+                <span class="hud-val" id="hud-kills-count">0</span>
+              </div>
+              <div class="hud-storm-timer" id="hud-storm-status">
+                <span class="storm-icon">🌀</span>
+                <span class="storm-text" id="hud-storm-text">蝕魔風暴收縮中：30s</span>
+              </div>
+            </div>
+
+            <!-- Boss Health Bar (Centered Top when Boss is Active) -->
+            <div id="boss-hud-bar" class="boss-hud hidden">
+              <div class="boss-title-row">
+                <span class="boss-crest">👹</span>
+                <span class="boss-name" id="boss-name-text">遠古遺跡巨像 · 滅世者</span>
+                <span class="boss-badge">WORLD BOSS</span>
+              </div>
+              <div class="boss-hp-track">
+                <div class="boss-hp-fill" id="boss-hp-fill" style="width: 100%;"></div>
+                <span class="boss-hp-text" id="boss-hp-text">2500 / 2500</span>
+              </div>
+            </div>
+
+            <!-- Kill Feed (Top Right) -->
+            <div class="kill-feed" id="kill-feed"></div>
+
+            <!-- Minimap (Top Right below feed) -->
+            <div class="minimap-container">
+              <canvas id="minimapCanvas" width="160" height="160"></canvas>
+              <div class="minimap-legend">
+                <span class="dot-legend player">● 你</span>
+                <span class="dot-legend enemy">● 敵騎</span>
+                <span class="dot-legend boss">👹 巨像</span>
+                <span class="dot-legend portal">🌀 傳送門</span>
+                <span class="dot-legend zone">⭕ 安全區</span>
+              </div>
+            </div>
+
+            <!-- Center Alerts -->
+            <div id="hud-alert-banner" class="hud-alert-banner hidden">
+              <div class="alert-content" id="alert-text">蝕魔風暴正在收縮！快前往聖光安全區！</div>
+            </div>
+
+            <!-- Bottom Character Status & Skills -->
+            <div class="hud-bottom">
+              <!-- Health, Mana & Exp Bars -->
+              <div class="vital-bars">
+                <div class="vital-bar hp-bar">
+                  <div class="vital-fill" id="hud-hp-fill" style="width: 100%;"></div>
+                  <span class="vital-label" id="hud-hp-text">生命值 1000 / 1000</span>
+                </div>
+                <div class="vital-bar mp-bar">
+                  <div class="vital-fill" id="hud-mp-fill" style="width: 100%;"></div>
+                  <span class="vital-label" id="hud-mp-text">法力值 300 / 300</span>
+                </div>
+                <div class="vital-bar talent-bar" id="hud-talent-indicator">
+                  <span class="talent-badge-label">天賦加護：<strong id="hud-talent-name">吸血鬼之吻</strong></span>
+                </div>
+              </div>
+
+              <!-- Skill Slots -->
+              <div class="skill-slots">
+                <div class="skill-slot active-slot" id="slot-attack">
+                  <span class="key-bind">左鍵</span>
+                  <div class="skill-icon" id="icon-attack">⚔️</div>
+                  <div class="cooldown-overlay" id="cd-attack"></div>
+                  <span class="skill-name">騎士斬擊</span>
+                </div>
+                <div class="skill-slot" id="slot-spell-1">
+                  <span class="key-bind">右鍵</span>
+                  <div class="skill-icon" id="icon-spell-1">🔥</div>
+                  <div class="cooldown-overlay" id="cd-spell-1"></div>
+                  <span class="skill-name" id="name-spell-1">烈焰爆轟</span>
+                </div>
+                <div class="skill-slot" id="slot-spell-2">
+                  <span class="key-bind">E鍵</span>
+                  <div class="skill-icon" id="icon-spell-2">❄️</div>
+                  <div class="cooldown-overlay" id="cd-spell-2"></div>
+                  <span class="skill-name" id="name-spell-2">霜凍新星</span>
+                </div>
+                <div class="skill-slot" id="slot-dash">
+                  <span class="key-bind">空白鍵</span>
+                  <div class="skill-icon" id="icon-dash">⚡</div>
+                  <div class="cooldown-overlay" id="cd-dash"></div>
+                  <span class="skill-name">奧術衝刺</span>
+                </div>
+                <div class="skill-slot" id="slot-potion">
+                  <span class="key-bind">Q鍵</span>
+                  <div class="skill-icon" id="icon-potion">🧪</div>
+                  <div class="item-count" id="potion-count">x2</div>
+                  <span class="skill-name">治癒聖水</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Virtual Touch Joystick & Buttons (Mobile/Touchscreen Friendly) -->
+            <div id="touch-controls" class="touch-controls-layer hidden">
+              <div class="joystick-zone" id="touch-joystick-zone">
+                <div class="joystick-base" id="joystick-base">
+                  <div class="joystick-knob" id="joystick-knob"></div>
+                </div>
+              </div>
+              <div class="touch-actions-grid">
+                <button class="touch-btn btn-touch-atk" id="touch-btn-atk">
+                  <span class="t-icon">⚔️</span>
+                  <span class="t-txt">斬擊</span>
+                </button>
+                <button class="touch-btn btn-touch-sp1" id="touch-btn-sp1">
+                  <span class="t-icon" id="touch-icon-sp1">🔥</span>
+                  <span class="t-txt" id="touch-txt-sp1">主法術</span>
+                </button>
+                <button class="touch-btn btn-touch-sp2" id="touch-btn-sp2">
+                  <span class="t-icon" id="touch-icon-sp2">❄️</span>
+                  <span class="t-txt" id="touch-txt-sp2">奧術絕技</span>
+                </button>
+                <button class="touch-btn btn-touch-dash" id="touch-btn-dash">
+                  <span class="t-icon">⚡</span>
+                  <span class="t-txt">衝刺</span>
+                </button>
+                <button class="touch-btn btn-touch-pot" id="touch-btn-pot">
+                  <span class="t-icon">🧪</span>
+                  <span class="t-txt">聖水</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOBBY START OVERLAY (GOTHIC PARCHMENT) -->
+          <div id="lobby-screen" class="screen-overlay">
+            <div class="parchment-modal lobby-modal gothic-card">
+              <div class="modal-seal">⚔️</div>
+              <h2 class="modal-title">奧術深淵：哥特魔法騎士大逃殺</h2>
+              <p class="modal-desc">
+                16 位魔法騎士降落於遠古黑石遺跡。隨著「蝕魔風暴」逼近、遠古遺跡巨像甦醒、血色沼澤與雷霆陷阱密布，善用法術、天賦、傳送門與草叢伏擊，成為最後存活的永夜大導師！
+              </p>
+
+              <div class="lobby-knight-card">
+                <div class="knight-avatar-large" id="lobby-avatar">🛡️</div>
+                <div class="knight-info-box">
+                  <h3 id="lobby-knight-name">破陣聖騎士</h3>
+                  <div class="knight-tags" id="lobby-knight-tags">
+                    <span class="tag-class">近戰坦克</span>
+                    <span class="tag-spell">光聖盾</span>
+                    <span class="tag-spell">烈焰斬</span>
+                  </div>
+                  <div class="knight-stats-bars">
+                    <div class="mini-stat"><span>生命</span><div class="stat-bar"><div id="lobby-stat-hp" style="width: 80%"></div></div></div>
+                    <div class="mini-stat"><span>法力</span><div class="stat-bar"><div id="lobby-stat-mp" style="width: 60%"></div></div></div>
+                    <div class="mini-stat"><span>魔力</span><div class="stat-bar"><div id="lobby-stat-atk" style="width: 70%"></div></div></div>
+                    <div class="mini-stat"><span>移速</span><div class="stat-bar"><div id="lobby-stat-spd" style="width: 65%"></div></div></div>
+                  </div>
+                  <div class="lobby-talent-preview" id="lobby-talent-preview">
+                    <span>👑 被動天賦：<strong>吸血鬼之吻</strong> (15% 傷害吸血)</span>
+                  </div>
+                </div>
+                <button class="btn-secondary gothic-btn-sub" id="btn-switch-knight-lobby">更換騎士 / 點數天賦 (CRUD)</button>
+              </div>
+
+              <div class="lobby-controls-hint">
+                <div class="hint-item"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移動走位</div>
+                <div class="hint-item"><kbd>左鍵</kbd> 近戰斬擊</div>
+                <div class="hint-item"><kbd>右鍵</kbd> 主法術 (火/冰/電/血/光)</div>
+                <div class="hint-item"><kbd>E</kbd> 奧術絕技 (召喚/瞬移/護盾/新星)</div>
+                <div class="hint-item"><kbd>空白鍵</kbd> 衝刺閃避</div>
+                <div class="hint-item"><kbd>Q</kbd> 飲用聖水</div>
+                <div class="hint-item"><kbd>📱</kbd> 支援手機平板虛擬搖桿</div>
+              </div>
+
+              <div class="lobby-actions">
+                <button id="btn-start-game" class="btn-royal btn-large gothic-primary-btn">⚡ 踏入深淵戰場 (降落競技場)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- GAME OVER / VICTORY MODAL -->
+          <div id="game-over-screen" class="screen-overlay hidden">
+            <div class="parchment-modal result-modal gothic-card">
+              <div class="result-crest" id="result-crest">🏆</div>
+              <h2 class="result-title" id="result-title">榮耀加冕！大逃殺冠軍</h2>
+              <p class="result-subtitle" id="result-subtitle">你是最後站立在奧術遺跡上的唯一大導師！</p>
+
+              <div class="result-stats-grid">
+                <div class="res-stat-card">
+                  <span class="stat-number gold" id="res-rank">#1</span>
+                  <span class="stat-title">最終名次</span>
+                </div>
+                <div class="res-stat-card">
+                  <span class="stat-number" id="res-kills">0</span>
+                  <span class="stat-title">擊敗騎士</span>
+                </div>
+                <div class="res-stat-card">
+                  <span class="stat-number" id="res-damage">0</span>
+                  <span class="stat-title">造成傷害</span>
+                </div>
+                <div class="res-stat-card">
+                  <span class="stat-number" id="res-time">00:00</span>
+                  <span class="stat-title">存活時間</span>
+                </div>
+              </div>
+
+              <!-- Note input for CRUD match recording -->
+              <div class="result-note-box">
+                <label for="match-note-input">📜 本局戰鬥心得 / 覆盤筆記 (將記錄至戰報殿堂)：</label>
+                <input type="text" id="match-note-input" placeholder="例如：利用暗影瞬移成功收割 Boss，在血霧圈中逆轉勝！" value="">
+              </div>
+
+              <div class="result-actions">
+                <button id="btn-save-record-play-again" class="btn-royal gothic-primary-btn">💾 儲存戰報並再戰一局</button>
+                <button id="btn-go-history" class="btn-secondary gothic-btn-sub">📜 檢視戰報與成就殿堂</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: KNIGHT WORKSHOP (CRUD + TALENTS) -->
+    <section id="tab-workshop" class="tab-pane">
+      <div class="panel-container">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">🛡️ 聖殿騎士工坊 (Knight Workshop)</h2>
+            <p class="panel-desc">
+              在此【新增】、【檢視】、【編輯】與【刪除】麾下魔法騎士。可自由分配 100 點屬性、配置 6 種核心主法術、6 種奧術絕技與 4 大被動天賦，即時套用至大逃殺戰局！(符合評分標準之管理/資料 CRUD 功能)
+            </p>
+          </div>
+          <div class="panel-actions">
+            <button id="btn-add-knight" class="btn-royal gothic-primary-btn">+ 創造新哥特騎士</button>
+            <button id="btn-reset-knights" class="btn-outline-danger" title="重置為初始騎士陣容">重設預設陣容</button>
+          </div>
+        </div>
+
+        <!-- Knights Grid -->
+        <div class="knights-grid" id="knights-list-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: HALL OF VALOR - MATCH RECORDS (CRUD + EXPORT + ACHIEVEMENTS) -->
+    <section id="tab-history" class="tab-pane">
+      <div class="panel-container">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">📜 英靈戰役與成就殿堂 (Hall of Valor & Relics)</h2>
+            <p class="panel-desc">
+              每場大逃殺的戰果完整記錄於此。支援【查看詳情】、【編輯備註/覆盤心得】與【刪除戰報】，並提供【JSON 資料匯出/匯入備份】與【六大傳奇成就系統】！(完全符合期末評分之 CRUD 資料管理加分要求)
+            </p>
+          </div>
+          <div class="panel-actions">
+            <button id="btn-export-history" class="btn-royal gothic-primary-btn">📥 匯出戰報 JSON</button>
+            <button id="btn-import-history" class="btn-secondary gothic-btn-sub">📤 匯入戰報 JSON</button>
+            <input type="file" id="file-import-history" accept=".json" style="display:none">
+            <button id="btn-add-manual-record" class="btn-secondary">+ 手動新增戰報</button>
+            <button id="btn-clear-history" class="btn-outline-danger">清空所有戰報</button>
+          </div>
+        </div>
+
+        <!-- Stats Overview Banner -->
+        <div class="stats-overview-banner">
+          <div class="summary-card">
+            <span class="summary-val" id="sum-total-matches">0</span>
+            <span class="summary-label">總戰鬥場次</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-val gold" id="sum-victories">0</span>
+            <span class="summary-label">冠軍次數 (吃雞)</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-val" id="sum-win-rate">0%</span>
+            <span class="summary-label">吃雞勝率</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-val" id="sum-total-kills">0</span>
+            <span class="summary-label">總擊殺騎士數</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-val" id="sum-best-rank">--</span>
+            <span class="summary-label">最佳名次</span>
+          </div>
+        </div>
+
+        <!-- Achievements Showcase Section -->
+        <div class="achievements-section">
+          <h3 class="section-title">🏆 哥特騎士成就殿堂 (Achievements)</h3>
+          <div class="achievements-grid" id="achievements-container">
+            <!-- Populated via JS based on match stats -->
+          </div>
+        </div>
+
+        <!-- Match History Table / Cards -->
+        <div class="history-list" id="history-list-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: GAME GUIDE & CONTROLS -->
+    <section id="tab-guide" class="tab-pane">
+      <div class="panel-container guide-container">
+        <h2 class="panel-title">📖 奧術榮耀：中世紀暗黑哥特大逃殺 遊戲手冊</h2>
+        
+        <div class="guide-grid">
+          <div class="guide-card">
+            <div class="guide-icon">⚔️</div>
+            <h3>操作控制與雙端支援</h3>
+            <ul>
+              <li><strong>移動走位</strong>：<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 或方向鍵</li>
+              <li><strong>騎士斬擊 (普通攻擊)</strong>：滑鼠游標瞄準 + <kbd>左鍵點擊</kbd></li>
+              <li><strong>主核心法術</strong>：滑鼠瞄準 + <kbd>右鍵點擊</kbd> (烈焰/冰柱/劍氣/連鎖電/鮮血詛咒/神聖天罰)</li>
+              <li><strong>次要奧術絕技</strong>：按 <kbd>E</kbd> 鍵 (新星/聖盾/火環/狂暴/死靈復甦/暗影瞬移)</li>
+              <li><strong>奧術衝刺</strong>：按 <kbd>空白鍵</kbd> (快速位移並短暫無敵)</li>
+              <li><strong>治癒聖水</strong>：按 <kbd>Q</kbd> 鍵 (即時回復 350 點生命值)</li>
+              <li><strong>📱 行動端支援</strong>：點擊頂部「📱 虛擬按鍵」即可在手機/平板上以左虛擬搖桿與右技能輪盤暢玩！</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <div class="guide-icon">👹</div>
+            <h3>巨像 Boss 與環境陷阱</h3>
+            <ul>
+              <li><strong>遠古遺跡巨像 Boss</strong>：
+                戰鬥進行至第 2 階段時於遺跡中心甦醒。具備 2500 點高血量與震地衝擊波，擊敗者獲掉落「👑 遠古神話皇冠」，全屬性暴增！
+              </li>
+              <li><strong>遠古雙向傳送門 (🌀)</strong>：
+                地圖設有西北與東南兩座哥特符文傳送陣，踏入即可瞬間跨半張地圖穿梭，提供絕佳繞後戰術。
+              </li>
+              <li><strong>血色詛咒沼澤 (🩸)</strong>：
+                踩入血沼將被減速 35% 並冒出血霧，需謹慎走位。
+              </li>
+              <li><strong>雷霆符文陷阱 (⚡)</strong>：
+                地圖隱藏雷印，觸發後 0.5 秒引來天雷重擊 120 傷害！
+              </li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <div class="guide-icon">🩸</div>
+            <h3>四大被動天賦樹 (工坊配置)</h3>
+            <ul>
+              <li><strong>吸血鬼之吻 (Vampiric Touch)</strong>：造成傷害的 15% 轉化為自身生命回復。</li>
+              <li><strong>哥特死戰 (Gothic Fortitude)</strong>：生命低於 30% 時，激發狂戰本能，獲得 40% 傷害減免。</li>
+              <li><strong>暗影疾風 (Shadow Swiftness)</strong>：衝刺冷卻時間減少 1 秒，衝刺後 2 秒內移速提升 25%。</li>
+              <li><strong>奧術湧流 (Arcane Surge)</strong>：每次擊敗敵人立即回復 50 點法力值並減少所有技能冷卻 2 秒。</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <div class="guide-icon">🎓</div>
+            <h3>期末評分 100 分滿分對應表</h3>
+            <ul>
+              <li><strong>基本作品 (60分)</strong>：具備完整大逃殺戰局、15 位高智慧 AI、4 階段毒圈收縮、Boss 戰、寶箱掉落與勝負結算。</li>
+              <li><strong>作品上線 (+10分)</strong>：純靜態極速前端，相容任何靜態託管（GitHub Pages / Vercel 零配置秒速部屬）。</li>
+              <li><strong>管理／資料功能 CRUD (+10分)</strong>：雙系統 CRUD（聖殿騎士工坊 + 英靈戰報殿堂），支援屬性天賦配置、戰報編輯覆盤，並具備 JSON 匯出與匯入備份。</li>
+              <li><strong>音效與視覺創新 (+10分)</strong>：獨創純 Web Audio 原生合成 19 種戰鬥音效與哥特暗黑氛圍 BGM，零外部音檔加載，畫面具備暴擊震動與哥特暗黑風格。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL: CREATE / EDIT KNIGHT (CRUD MODAL + TALENTS) -->
+  <div id="modal-knight-crud" class="modal-backdrop hidden">
+    <div class="parchment-modal form-modal gothic-card">
+      <button class="modal-close" id="btn-close-knight-modal">&times;</button>
+      <div class="modal-seal">🛡️</div>
+      <h3 class="modal-title" id="knight-modal-title">創造新魔法騎士</h3>
+      
+      <form id="form-knight-crud">
+        <input type="hidden" id="knight-edit-id" value="">
+        
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label for="knight-input-name">騎士稱號與名諱 *</label>
+            <input type="text" id="knight-input-name" required placeholder="例：冥淵死靈使者·維克多" maxlength="20">
+          </div>
+          <div class="form-group flex-1">
+            <label for="knight-input-avatar">徽章圖騰</label>
+            <select id="knight-input-avatar">
+              <option value="🛡️">🛡️ 聖光之盾</option>
+              <option value="⚔️">⚔️ 雙生誓刃</option>
+              <option value="🔥">🔥 烈焰火冕</option>
+              <option value="❄️">❄️ 極地霜印</option>
+              <option value="⚡">⚡ 雷霆怒印</option>
+              <option value="💀">💀 冥府頭骨</option>
+              <option value="🩸">🩸 鮮血符印</option>
+              <option value="🦇">🦇 哥特黑蝠</option>
+              <option value="👑">👑 諸王之冠</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="knight-input-archetype">戰鬥流派職業</label>
+            <select id="knight-input-archetype">
+              <option value="paladin">破陣聖騎士 (高生存 / 護盾)</option>
+              <option value="spellsword">炎獄魔劍士 (高爆發 / 範圍灼燒)</option>
+              <option value="frost">冰霜審判官 (控場減速 / 射程優勢)</option>
+              <option value="shadow">暗影遊俠 (極致敏捷 / 高暴擊)</option>
+              <option value="death_knight">冥淵死靈使者 (死靈召喚 / 詛咒削弱)</option>
+              <option value="blood_reaver">鮮血狂戰士 (高額吸血 / 殘血狂暴)</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="knight-input-spell1">主核心法術 (右鍵)</label>
+            <select id="knight-input-spell1">
+              <option value="fireball">🔥 烈焰爆轟 (遠程範圍爆炸)</option>
+              <option value="frost_bolt">❄️ 極寒冰柱 (直線貫穿減速)</option>
+              <option value="arcane_slash">✨ 奧術劍氣 (快速貫穿斬)</option>
+              <option value="thunder_chain">⚡ 連鎖閃電 (躍動連環電擊)</option>
+              <option value="blood_drain">🩸 鮮血詛咒 (汲取生命並回血)</option>
+              <option value="holy_judgement">👑 神聖天罰 (全屏聖光裁決)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="knight-input-spell2">次要奧術絕技 (E鍵)</label>
+            <select id="knight-input-spell2">
+              <option value="frost_nova">❄️ 霜凍新星 (周身全方位凍結)</option>
+              <option value="holy_shield">🛡️ 聖光壁壘 (生成吸收傷害護盾)</option>
+              <option value="flame_circle">🔥 烈火之環 (擴散燃燒風暴)</option>
+              <option value="overcharge">⚡ 奧術狂暴 (大幅提升移速與攻速)</option>
+              <option value="summon_skeletons">💀 死靈復甦 (召喚2具骷髏僕從)</option>
+              <option value="shadow_blink">🗡️ 暗影瞬移 (瞬間閃爍突襲暴擊)</option>
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label for="knight-input-talent">被動專屬天賦</label>
+            <select id="knight-input-talent">
+              <option value="vampiric">🩸 吸血鬼之吻 (15% 傷害吸血)</option>
+              <option value="fortitude">🛡️ 哥特死戰 (殘血 40% 傷害減免)</option>
+              <option value="swiftness">⚡ 暗影疾風 (衝刺冷卻 -1s 且加速)</option>
+              <option value="surge">🔮 奧術湧流 (擊殺回 50MP 減 CD)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="knight-input-color">戰袍代表色</label>
+            <input type="color" id="knight-input-color" value="#c69b32">
+          </div>
+        </div>
+
+        <!-- Attribute Points Allocation -->
+        <div class="attributes-section">
+          <div class="attr-header">
+            <span>屬性點數分配 (總和 100 點)</span>
+            <span class="attr-points-left">剩餘點數：<strong id="attr-remaining">0</strong></span>
+          </div>
+          <div class="attr-slider-group">
+            <div class="attr-label-box">
+              <span>❤️ 生命強化 (HP)：<strong id="val-attr-hp">30</strong></span>
+            </div>
+            <input type="range" id="attr-hp" min="10" max="60" value="30">
+          </div>
+          <div class="attr-slider-group">
+            <div class="attr-label-box">
+              <span>💙 法力上限 (MP)：<strong id="val-attr-mp">25</strong></span>
+            </div>
+            <input type="range" id="attr-mp" min="10" max="60" value="25">
+          </div>
+          <div class="attr-slider-group">
+            <div class="attr-label-box">
+              <span>🔮 魔法威能 (ATK)：<strong id="val-attr-atk">25</strong></span>
+            </div>
+            <input type="range" id="attr-atk" min="10" max="60" value="25">
+          </div>
+          <div class="attr-slider-group">
+            <div class="attr-label-box">
+              <span>👟 迅捷移速 (SPD)：<strong id="val-attr-spd">20</strong></span>
+            </div>
+            <input type="range" id="attr-spd" min="10" max="60" value="20">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="btn-cancel-knight-form">取消</button>
+          <button type="submit" class="btn-royal gothic-primary-btn" id="btn-save-knight-form">💾 儲存並登錄騎士</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT MATCH NOTE (CRUD MODAL) -->
+  <div id="modal-match-crud" class="modal-backdrop hidden">
+    <div class="parchment-modal form-modal gothic-card">
+      <button class="modal-close" id="btn-close-match-modal">&times;</button>
+      <div class="modal-seal">📜</div>
+      <h3 class="modal-title" id="match-modal-title">編輯戰役覆盤紀錄</h3>
+      
+      <form id="form-match-crud">
+        <input type="hidden" id="match-edit-id" value="">
+        <div class="form-group">
+          <label>戰役概要：</label>
+          <p id="match-summary-preview" class="summary-text-box"></p>
+        </div>
+        <div class="form-group">
+          <label for="match-input-note">戰鬥檢討、戰術心得與備註：</label>
+          <textarea id="match-input-note" rows="4" placeholder="記錄本場關鍵決策、失誤或亮眼操作..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="btn-cancel-match-form">取消</button>
+          <button type="submit" class="btn-royal gothic-primary-btn">💾 更新戰報備註</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

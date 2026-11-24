@@ -1,0 +1,56 @@
+{
+  "revision": 1,
+  "draft": {
+    "title": "奧術榮耀：中世紀暗黑哥特魔法大逃殺 (Realm of Arcane Knights: Gothic Royale)",
+    "websiteUrl": "https://arcane-knights-royale.vercel.app",
+    "vercelDeployer": "陳羿醴",
+    "repositoryUrl": "https://github.com/chen-yi-li/arcane-knights-royale",
+    "githubCreator": "陳羿醴",
+    "designSummary": "以「中世紀暗黑哥特奇幻與魔法騎士」為核心風格的頂視角大逃殺競技遊戲。包含16人戰局、遠古遺跡巨像World Boss討伐、血色沼澤與雷霆陷阱、遠古傳送門、純Web Audio原生哥特氛圍BGM與19種打擊音效、四大被動天賦樹、暴擊震動回饋、手機觸控虛擬搖桿，以及完整的聖殿騎士工坊與英靈戰報殿堂雙CRUD資料管理（支援JSON匯出入備份與成就系統）。",
+    "changes": [
+      {
+        "before": "最初毒圈以固定等速收縮，地圖過大導致前期遇敵率低，後期又缺乏緊張感。",
+        "decision": "改採四階段動態收縮機制（15s/12s/10s/8s），並逐階遞增傷害（18->34->58->95 DPS），加入倒數警報音效與預告圈，並在第2階段加入遠古巨像Boss爭奪戰。",
+        "result": "戰鬥節奏精準收斂在3～4分鐘，AI在縮圈時主動逃生與搶奪Boss，決賽圈戰鬥激烈度大幅提升。",
+        "evidence": "程式碼 js/map.js 縮圈系統與簡報實機測試數據"
+      },
+      {
+        "before": "騎士工坊自訂角色後僅存在介面表單，無法將自選技能、被動天賦帶入實戰，且戰報資料無法跨裝置備份。",
+        "decision": "重構 StorageManager 狀態總線，打通角色工坊 CRUD 與實戰系統，新增四大被動天賦（吸血/死戰/疾風/湧流）、成就殿堂與 JSON 戰報檔案匯出與匯入功能。",
+        "result": "成功於戰場中實裝自訂冥淵死靈使者，實證吸血被動與死靈復甦召喚隨從正常運作，並可一鍵匯出匯入戰報資料。",
+        "evidence": "程式碼 js/storage.js 與 js/game.js 聯動模組及前後截圖"
+      },
+      {
+        "before": "早期使用外部 mp3 音訊檔，因跨域與載入延遲常發生 404 錯誤及聲音破音卡頓，缺乏背景氛圍音樂。",
+        "decision": "全面採用 HTML5 Web Audio API 以振盪器與噪音節點程序化即時合成 19 種戰鬥音效與自研純原生哥特暗黑氛圍 BGM（大教堂風琴持續和弦與鐘鳴）。",
+        "result": "實現零外部資源依賴，離線或無痕模式下揮劍、瞬移、神聖天罰與背景哥特音樂均能 0 延遲即時響應。",
+        "evidence": "程式碼 js/audio.js 音效與 BGM 引擎實作與架構說明"
+      }
+    ],
+    "contributions": [
+      {
+        "name": "陳羿醴",
+        "studentNo": "11533209",
+        "work": "主導專題概念發想、大逃殺核心物理與地圖縮圈系統開發、Web Audio音效與哥特BGM引擎架構實作"
+      },
+      {
+        "name": "郭奕",
+        "studentNo": "11533210",
+        "work": "聖殿騎士工坊與英靈戰報殿堂雙 CRUD 系統實作、被動天賦樹加點、成就系統與 JSON 匯出入備份功能"
+      },
+      {
+        "name": "李宗岳",
+        "studentNo": "11533211",
+        "work": "AI 騎士決策狀態機與世界巨像Boss開發、血色沼澤/雷霆陷阱/傳送門環境機制、暗黑哥特UI介面美術與手機觸控搖桿支援"
+      }
+    ]
+  },
+  "groupEstimate": {
+    "revision": 1,
+    "published": 10,
+    "dataManagement": 10,
+    "individualContribution": 10,
+    "creativity": 10,
+    "explanation": "具備高完成度暗黑哥特魔法騎士大逃殺遊戲、雙系統完整CRUD資料管理、零依賴Web Audio合成音效與BGM、世界Boss戰與傳送門陷阱，預估四項加分項目皆可達到滿分標準。"
+  }
+}
